@@ -13,8 +13,8 @@
 
 // gives memset
 
-#include <vector> // --> Day 5 
-#include <thread> // --> Day 5
+#include <vector> // --> Day 5  
+#include <thread> // --> Day 5 // wait times (performance)
 
 // we call the void run from the header
 // create atruct run which include all the int from the private
@@ -130,13 +130,52 @@ void RedisServer::run(){
 
         // Understand the functions below tomorrow
 
-        threads.emplace_back([this, client_socket]() {
-            char buffer[1024];
+        threads.emplace_back([this, client_socket]() { // By including <thread>, you allow User A to be in a while(true) loop talking to you, while User B connects simultaneously. Without it, User B would have to wait until User A disconnects.
+            // [this] means the commandHandler which takes argument for inside response to work.
+            // it is a pointer to find variable cmdHandler.
+            char buffer[1024]; // array of chars filled with 0s
 
             while (true) {
-                memset(buffer, 0, sizeof(buffer));
+                memset(buffer, 0, sizeof(buffer)); // memoryset taking arg 1 the memory we wanna clean the value to write and its size.
+                // Round 1: Client sends "HELLO".
+
+                // You write on the board: [H][E][L][L][O]
+                 
+                // You read 5 letters. Perfect.
+                 
+                // Round 2: Client sends "BYE".
+                 
+                // Without memset: You overwrite the first 3 letters.
+                 
+                // Board looks like: [B][Y][E][L][O]
+                
+                // With memset:
+
+                // Before Round 2, you wipe the board clean (fill with zeros).
+                 
+                // Board: [0][0][0][0][0]...
+                 
+                // Write "BYE": [B][Y][E][0][0]...
 
                 int bytes = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
+
+                // Network: Packets arrive with "SET A 10".
+
+                // recv():
+                 
+                // Copies "SET A 10" into buffer.
+                 
+                // Returns 8 (the length).
+                 
+                // std::string request(buffer, 8):
+                 
+                // Looks at buffer.
+                 
+                // Counts 8 characters.
+                 
+                // Creates a string object "SET A 10".
+                 
+                // Now your cmdHandler can inspect this string!
 
                 if (bytes <= 0){
                     std::cout << "Client Disconnected.\n";
