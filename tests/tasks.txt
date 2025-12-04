@@ -1,0 +1,27 @@
+Everyday Important taks.
+Start with DSA, finish the problems first. Then go for the project. if project remains incomplete continue the next day.
+
+IMPORTANT:
+
+Breakdown the problem into simpler and simpler words.
+Understand the problem line by line.
+Check the code once see if you can make it by yourself.
+If not understood the code thouroughly and try it by yourself.
+And then debug.
+Main part: Finish the task as soon as possible and no timepass if not understood check instantly.
+
+PROJECT REDISSERVER:
+
+Day 1: Create basic Functions like Set and Get for a hashmap in a redisdatabase.
+
+Day 2: Add other functions like del and flush all. Also create a new data structure to hold lists and Complex Maps.
+
+Day 3: Create commandhandler file that does parsing which convert raw text into simplied string which our normal functions like set and get can run.
+
+Day 4: create RedisServer that connects the client to the port. by accepting the connection.
+
+Day 5: Finally connect all the isolated pieces: The Ears (Server) + The Brain (Parser) + The Memory (Database).
+
+Day 6: Persistence and Survival (dump and load and graceful shutdown)
+
+Next week repeat.
