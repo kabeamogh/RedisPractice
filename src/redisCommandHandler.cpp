@@ -131,135 +131,139 @@
 // to the \r\n but again because of for loop we would come back.
 // 4. And for other parts the logic was only correct for the specific RESP Protocol.
 
-#include "RedisCommandHandler.h"
-#include "RedisDatabase.h" // Crucial: Include the DB so we can call getInstance()
-#include <iostream>
-#include <vector>
-#include <string>
-#include <algorithm>
-
-// 1. MAIN ENTRY POINT
-std::string RedisCommandHandler::processCommand(const std::string& input) {
-    // Safety check: If empty, return empty
-    if (input.empty()) {
-        return "-Error: Empty input\r\n";
-    }
-
-    // 1. Parse the raw string into tokens
-    std::vector<std::string> tokens = parseInput(input);
-
-    // 2. Route to correct handler
-    if (!tokens.empty()) {
-        // Convert command to Uppercase (so "set" works like "SET")
-        std::string cmd = tokens[0];
-        std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
-
-        if (cmd == "SET") {
-            handleSet(tokens);
-        } 
-        else if (cmd == "GET") {
-            // We capture the result (in a real server, we would return this)
-            std::string val = handleGet(tokens);
-        }
-    }
-    
-    return "-Error: Unknown command\r\n";
-}
-
-// 2. THE PARSER
-std::vector<std::string> RedisCommandHandler::parseInput(const std::string& input) {
-    std::vector<std::string> tokens;
-
-    // --- CASE A: TELNET CLIENT (Simple text like "SET k v") ---
-    // Your Manual Loop Logic
-    if (input[0] != '*') {
-        std::string word = "";
-        for (size_t i = 0; i < input.size(); i++) {
-            char c = input[i];
-            if (c == ' ') {
-                if (!word.empty()) {
-                    tokens.push_back(word);
-                    word = "";
-                }
-            } else {
-                word += c;
-            }
-        }
-        // Push the last word if exists
-        if (!word.empty()) {
-            tokens.push_back(word);
-        }
-        return tokens;
-    }
-
-    // --- CASE B: RESP CLIENT (starts with *) ---
-    // Your "find/substr" Logic
-    
-    int n = 0;
-    size_t currentPos = 0;
-
-    // 1. Get the number of elements (*3)
-    if (input[0] == '*') {
-        size_t lineEnd = input.find("\r\n", 0);
-        std::string numberStr = input.substr(1, lineEnd - 1);
-        n = std::stoi(numberStr);
-        currentPos = lineEnd + 2; // Move past \r\n
-    } else {
-        return tokens;
-    }
-
-    // 2. Loop n times to extract words
-    for (int i = 0; i < n; i++) {
-        // Expecting $Length\r\nValue\r\n
-        if (input[currentPos] == '$') {
-            // Read Length
-            size_t lineEnd = input.find("\r\n", currentPos);
-            int len = std::stoi(input.substr(currentPos + 1, lineEnd - (currentPos + 1)));
+ #include "RedisCommandHandler.h"
+ #include "RedisDatabase.h" // Crucial: Include the DB so we can call getInstance()
+ #include <iostream>
+ #include <vector>
+ #include <string>
+ #include <algorithm>
+ 
+ // 1. MAIN ENTRY POINT
+ std::string RedisCommandHandler::processCommand(const std::string& input) {
+     // Safety check: If empty, return empty
+     if (input.empty()) {
+         return "-Error: Empty input\r\n";
+     }
+ 
+     // 1. Parse the raw string into tokens
+     std::vector<std::string> tokens = parseInput(input);
+ 
+     // 2. Route to correct handler
+     if (!tokens.empty()) {
+         // Convert command to Uppercase (so "set" works like "SET")
+         std::string cmd = tokens[0];
+         std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
+ 
+         if (cmd == "SET") {
+             handleSet(tokens);
+             return "+OK\r\n";
+         } 
+         else if (cmd == "GET") {
+             // We capture the result (in a real server, we would return this)
+             std::string val = handleGet(tokens);
+             return val;
+         }
+     }
+     
+     return "-Error: Unknown command\r\n";
+ }
+ 
+ // 2. THE PARSER
+ std::vector<std::string> RedisCommandHandler::parseInput(const std::string& input) {
+     std::vector<std::string> tokens;
+ 
+     // --- CASE A: TELNET CLIENT (Simple text like "SET k v") ---
+     // Your Manual Loop Logic
+     if (input[0] != '*') {
+         std::string word = "";
+         for (size_t i = 0; i < input.size(); i++) {
+             char c = input[i];
+             if (c == ' ' || c == '\n' || c == '\r') {
+                 if (!word.empty()) {
+                     tokens.push_back(word);
+                     word = "";
+                 }
+             } else {
+                 word += c;
+             }
+         }
+         // Push the last word if exists
+         if (!word.empty()) {
+             tokens.push_back(word);
+         }
+         return tokens;
+     }
+ 
+     // --- CASE B: RESP CLIENT (starts with *) ---
+     // Your "find/substr" Logic
+     
+     int n = 0;
+     size_t currentPos = 0;
+ 
+     // 1. Get the number of elements (*3)
+     if (input[0] == '*') {
+         size_t lineEnd = input.find("\r\n", 0);
+         std::string numberStr = input.substr(1, lineEnd - 1);
+         n = std::stoi(numberStr);
+         currentPos = lineEnd + 2; // Move past \r\n
+     } else {
+         return tokens;
+     }
+ 
+     // 2. Loop n times to extract words
+     for (int i = 0; i < n; i++) {
+         // Expecting $Length\r\nValue\r\n
+         if (input[currentPos] == '$') {
+             // Read Length
+             size_t lineEnd = input.find("\r\n", currentPos);
+             int len = std::stoi(input.substr(currentPos + 1, lineEnd - (currentPos + 1)));
+             
+             currentPos = lineEnd + 2; // Move past \r\n to start of text
+ 
+             // Read Text
             
-            currentPos = lineEnd + 2; // Move past \r\n to start of text
-
-            // Read Text
-            std::string text = input.substr(currentPos, len);
-            tokens.push_back(text);
-
-            currentPos += len + 2; // Move past text + \r\n
-        }
-    }
-
-    return tokens;
-}
-
-// 3. THE HANDLERS
-
-void RedisCommandHandler::handleSet(const std::vector<std::string>& tokens) {
-    if (tokens.size() < 3) {
-        std::cout << "Invalid Input" << std::endl;
-        return;
-    }
-    
-    std::cout << "Accepted SET" << std::endl;
-    // Call the Singleton
-    RedisDatabase::getInstance().set(tokens[1], tokens[2]);
-}
-
-std::string RedisCommandHandler::handleGet(const std::vector<std::string>& tokens) {
-    if (tokens.size() < 2) {
-        std::cout << "Invalid Input" << std::endl;
-        return "";
-    }
-    
-    std::cout << "Accepted GET" << std::endl;
-    std::string val; 
-    
-    // Call the Singleton
-    bool found = RedisDatabase::getInstance().get(tokens[1], val);
-    
-    if (found) {
-        return val;
-    } else {
-        std::cout << "Not Found" << std::endl;
-        return "";
-    }
-}
-
-
+             tokens.push_back(input.substr(currentPos, len));
+             
+                     
+             currentPos += len + 2; // Move past text + \r\n
+         }
+     }
+ 
+     return tokens;
+ }
+ 
+ // 3. THE HANDLERS
+ 
+ void RedisCommandHandler::handleSet(const std::vector<std::string>& tokens) {
+     if (tokens.size() < 3) {
+         std::cout << "Invalid Input" << std::endl;
+         return;
+     }
+     
+     std::cout << "Accepted SET" << std::endl;
+     // Call the Singleton
+     RedisDatabase::getInstance().set(tokens[1], tokens[2]);
+ }
+ 
+ std::string RedisCommandHandler::handleGet(const std::vector<std::string>& tokens) {
+     if (tokens.size() < 2) {
+         std::cout << "Invalid Input" << std::endl;
+         return "";
+     }
+     
+     std::cout << "Accepted GET" << std::endl;
+     std::string val; 
+     
+     // Call the Singleton
+     bool found = RedisDatabase::getInstance().get(tokens[1], val);
+     
+     if (found) {
+         return "$" + std::to_string(val.length()) + "\r\n" + val + "\r\n";;
+     } else {
+         std::cout << "Not Found" << std::endl;
+         return "$-1\r\n";
+     }
+ }
+ 
+ // Use printf '*2\r\n$3\r\nGET\r\n$6\r\nmyhero\r\n' | nc localhost 6379
+ // single quotes.

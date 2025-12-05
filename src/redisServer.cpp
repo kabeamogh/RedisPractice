@@ -1,4 +1,5 @@
 #include "redisServer.h"
+#include "redisDatabase.h"
 #include <iostream>
 #include <sys/socket.h>
 // kernel library 
@@ -10,11 +11,22 @@
 #include <unistd.h>
 // function it give close()
 #include <cstring>
+#include <signal.h> // For signal() --> Day 6
 
 // gives memset
 
 #include <vector> // --> Day 5  
 #include <thread> // --> Day 5 // wait times (performance)
+
+static RedisServer* globalServer = nullptr;
+
+void signalHandler(int signum) {
+    std::cout << "\n Interrupt Received (" << signum << "). Saving & Stopping...\n";
+    if (globalServer) {
+        globalServer->shutdown();
+    }
+    exit(signum);
+}
 
 // we call the void run from the header
 // create atruct run which include all the int from the private
@@ -24,7 +36,25 @@
 //    port, system_socket(-1), atomic<bool> running = false;
 //};
 
-RedisServer::RedisServer(int port): port(port), system_socket(-1), running(false) {} // Remember class constructor.
+RedisServer::RedisServer(int port): port(port), system_socket(-1), running(false) {
+
+    globalServer = this;
+
+    signal(SIGINT, signalHandler);
+
+} // Remember class constructor.
+
+void RedisServer::shutdown() {
+    running = false;
+
+    if (RedisDatabase::getInstance().dump("dump.rdb")) {
+        std::cout << "Database saved to dump.rdb\n";
+    } else {
+        std::cerr << "Failed to save database.\n";
+    }
+
+    close(system_socket);
+}
 
 // now we arite the func code for this run func.
 

@@ -3,9 +3,10 @@
 
 #include <unordered_map>
 #include <iostream>
-//#include <mutex>
+#include <mutex>
 #include <string>
 #include <vector>
+
 
 class RedisDatabase {
     public:
@@ -29,12 +30,18 @@ class RedisDatabase {
     void hset(const std::string& key, const std::string& field, const std::string& value);
     std::string hget(const std::string& key, const std::string& field);
 
-    
+    // -- Day 6 -- // -> Persistence
+
+    bool dump(const std::string& filename);
+    bool load(const std::string& filename);
+
+    // ---------- //
+
     private:
     RedisDatabase() = default;
     // creating mutex and kv_store
     
-    //std::mutex db_mutex;
+    std::mutex db_mutex;
     std::unordered_map<std::string,std::string> kv_store;
     std::unordered_map<std::string,std::vector<std::string>> list_store;
     std::unordered_map<std::string,std::unordered_map<std::string,std::string>> hash_store;
