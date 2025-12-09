@@ -26,4 +26,4 @@ jobs:
         context: .
         push: true
         # ACHTUNG: Ersetzen Sie 'kabeamogh' durch Ihren echten Docker-Usernamen!
-        tags: kabeamogh/my-redis-server:latest
+        tags: amoghkabe/my-redis-server:latest
