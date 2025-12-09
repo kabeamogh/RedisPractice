@@ -10,10 +10,11 @@
 // gives us AF_INET INADDR_ANY
 #include <unistd.h>
 // function it give close()
-#include <cstring>
-#include <signal.h> // For signal() --> Day 6
+#include <cstring> // gives memset
+#include <signal.h> // For signal() --> Day 6 // gives signal() and SIGINT
+// "When SIGINT (Ctrl+C) happens, run 'signalHandler'"
+//    signal(SIGINT, signalHandler); // In the main function
 
-// gives memset
 
 #include <vector> // --> Day 5  
 #include <thread> // --> Day 5 // wait times (performance)

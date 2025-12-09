@@ -1,7 +1,7 @@
 #include <iostream>
-#include "RedisDatabase.h"
+#include "redisDatabase.h"
 #include <unordered_map>
-#include <fstream> // File Stream (Input/Output)
+#include <fstream> // File Stream (Input/Output) connects to the harddrive
 #include <sstream> // String Stream (Parsing)
 #include <mutex>
 
@@ -71,10 +71,14 @@ std::string RedisDatabase::hget(const std::string& key, const std::string& field
     return hash_store[key][field];
 }
 
+
+
+
+
 bool RedisDatabase::dump(const std::string& filename) {
     std::lock_guard<std::mutex> lock(db_mutex);
 
-    std::ofstream ofs(filename);
+    std::ofstream ofs(filename); // Output file stream. Writes data out to a file.
     if (!ofs) return false;
 
     // Save Key-Values (Format: L key value)
@@ -111,16 +115,30 @@ bool RedisDatabase::dump(const std::string& filename) {
 
 // 2. LOAD FROM DISK (Startup)
 bool RedisDatabase::load(const std::string& filename){
-    std::lock_guard<std::mutex> lock(db_mutex);
+    std::lock_guard<std::mutex> lock(db_mutex); // Multiple users cant type in the command
 
-    std::ifstream ifs(filename);
+    std::ifstream ifs(filename); // Input File Stream: Reads data in from a file.
     if (!ifs) return false;
 
-    kv_store.clear();
+    kv_store.clear(); // clear the existing RAM.
     list_store.clear();
     hash_store.clear();
 
     std::string line;
+
+    // THE HARD WAY (Manual String Parsing)
+    // string line = "K username Gemini";
+    
+    // 1. Find first space
+    // int pos1 = line.find(' '); 
+    // string type = line.substr(0, pos1); // "K"
+     
+    // 2. Find next space
+    // int pos2 = line.find(' ', pos1 + 1);
+    // string key = line.substr(pos1 + 1, pos2 - pos1 - 1); // "username"
+     
+    // 3. Take the rest
+    // string value = line.substr(pos2 + 1); // "Gemini"
     
     while(std::getline(ifs, line)) {
         std::stringstream ss(line);

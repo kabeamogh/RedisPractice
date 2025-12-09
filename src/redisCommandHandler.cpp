@@ -131,8 +131,8 @@
 // to the \r\n but again because of for loop we would come back.
 // 4. And for other parts the logic was only correct for the specific RESP Protocol.
 
- #include "RedisCommandHandler.h"
- #include "RedisDatabase.h" // Crucial: Include the DB so we can call getInstance()
+ #include "redisCommandHandler.h"
+ #include "redisDatabase.h" // Crucial: Include the DB so we can call getInstance()
  #include <iostream>
  #include <vector>
  #include <string>

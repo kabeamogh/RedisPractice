@@ -5,7 +5,7 @@
 #include <atomic> // make the variable operation indivisible (entire taks done by the cpu is done as it is as being told not like i++)
 #include <vector>
 #include <thread>
-#include "RedisCommandHandler.h"
+#include "redisCommandHandler.h"
 
 
 class RedisServer{

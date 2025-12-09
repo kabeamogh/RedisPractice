@@ -1,8 +1,9 @@
-#include "RedisServer.h"
-#include "RedisDatabase.h"
+#include "redisServer.h"
+#include "redisDatabase.h"
 #include <iostream>
 #include <thread>
-#include <chrono>
+#include <chrono> // C++ Standard Library header that handles Time.
+
 
 int main(int argc, char* argv[]) {
     int port = 6379;
@@ -18,8 +19,7 @@ int main(int argc, char* argv[]) {
     }
 
     
-    
-    // 1. Create the Server Object (Port 6379)
+
     RedisServer server(6379);
     
     // 2. Start the Loop
