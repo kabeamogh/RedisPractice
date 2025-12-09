@@ -1,0 +1,29 @@
+name: C++ Redis CD (Docker)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Code herunterladen
+    - uses: actions/checkout@v3
+
+    # 2. Bei Docker Hub einloggen (Benutzt die geheimen Secrets)
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    # 3. Docker Image bauen und hochladen (Push)
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        # ACHTUNG: Ersetzen Sie 'kabeamogh' durch Ihren echten Docker-Usernamen!
+        tags: kabeamogh/my-redis-server:latest
