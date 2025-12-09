@@ -1,0 +1,43 @@
+name: C++ Redis CI
+
+# Wann soll der Roboter starten?
+# Immer wenn Sie auf 'main' pushen.
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    # Der Computer, auf dem das läuft (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Ihren Code herunterladen
+    - uses: actions/checkout@v3
+
+    # 2. CMake und G++ installieren
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++
+
+    # 3. Build-Ordner erstellen (für Sauberkeit)
+    - name: Create Build Directory
+      run: mkdir build
+
+    # 4. CMake vorbereiten
+    - name: Configure CMake
+      run: cmake ..
+      working-directory: ./build
+
+    # 5. Kompilieren (make)
+    - name: Build
+      run: make
+      working-directory: ./build
+      
+    # 6. Prüfen, ob die Datei 'redis-server' wirklich da ist
+    - name: Verify Executable
+      run: ls -l redis-server
+      working-directory: ./build
